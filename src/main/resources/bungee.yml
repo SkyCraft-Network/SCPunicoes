@@ -1,0 +1,4 @@
+name: SCPunicoes
+version: '${project.version}'
+author: thomaszoord
+main: br.com.thomaszoord.scpunicoes.SCPunicoes
