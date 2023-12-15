@@ -75,5 +75,10 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/SC_API-Bungee.jar</systemPath>
         </dependency>
+        <dependency>
+            <groupId>com.discord4j</groupId>
+            <artifactId>discord4j-core</artifactId>
+            <version>3.2.6</version>
+        </dependency>
     </dependencies>
 </project>
