@@ -136,7 +136,11 @@ public enum Razoes {
             TipoPunicao.BAN, Duration.ofHours(2),
             TipoPunicao.BAN, Duration.ofDays(1),
             TipoPunicao.BAN, Duration.ofDays(3),
-            TipoPunicao.BAN, Duration.ofDays(7),false);
+            TipoPunicao.BAN, Duration.ofDays(7),false),
+
+    TESTE("Teste", "Teste", TipoPunicao.BAN, Duration.ofMinutes(2),
+            TipoPunicao.BAN, Duration.ofMinutes(2),
+            TipoPunicao.BAN, Duration.ofMinutes(2), false);
 
     private final String descricao;
     private final String descricaoPunicao;
@@ -153,7 +157,7 @@ public enum Razoes {
     private final Duration duracao3;
     private final Duration duracao4;
 
-    private boolean necessitaProvas;
+    private final boolean necessitaProvas;
 
     Razoes(String descricao,
            String descricaoPunicao,
@@ -246,6 +250,10 @@ public enum Razoes {
         return duracao4;
     }
 
+
+    public boolean isNecessitaProvas() {
+        return necessitaProvas;
+    }
 
     public String getDescricaoPunicao() {
         return descricaoPunicao;

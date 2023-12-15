@@ -1,6 +1,7 @@
 package br.com.thomaszoord.scpunicoes;
 
 import br.com.thomaszoord.scpunicoes.Comandos.Punir;
+import br.com.thomaszoord.scpunicoes.Comandos.Punis;
 import br.com.thomaszoord.scpunicoes.Eventos.LoginListener;
 import net.md_5.bungee.api.plugin.Plugin;
 
@@ -19,6 +20,9 @@ public final class SCPunicoes extends Plugin {
 
     public void RegisterCommands(){
         getProxy().getPluginManager().registerCommand(this, new Punir());
+        getProxy().getPluginManager().registerCommand(this, new Punis());
+
+
         getProxy().getPluginManager().registerListener(this, new LoginListener());
 
     }

@@ -17,13 +17,18 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Command;
+import net.md_5.bungee.event.EventHandler;
 
 import java.awt.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Punir extends Command {
 
@@ -102,7 +107,8 @@ public class Punir extends Command {
                 Razoes.NICKNAME_INAPROPRIADO_PIRATA,
                 Razoes.OFENSA_JOGADOR,
                 Razoes.SKIN_INAPROPRIADA,
-                Razoes.FORMACAO_TIMES
+                Razoes.FORMACAO_TIMES,
+                Razoes.TESTE
 
         ));
 
@@ -128,7 +134,8 @@ public class Punir extends Command {
                 Razoes.OFENSA_JOGADOR,
                 Razoes.SKIN_INAPROPRIADA,
                 Razoes.CHARGEBACK,
-                Razoes.FORMACAO_TIMES
+                Razoes.FORMACAO_TIMES,
+                Razoes.TESTE
 
         ));
         PUNICOES_POR_PERMISSAO.put("CEO", Arrays.asList(
@@ -152,7 +159,8 @@ public class Punir extends Command {
                 Razoes.OFENSA_JOGADOR,
                 Razoes.SKIN_INAPROPRIADA,
                 Razoes.CHARGEBACK,
-                Razoes.FORMACAO_TIMES
+                Razoes.FORMACAO_TIMES,
+                Razoes.TESTE
         ));
 
     }
@@ -196,9 +204,38 @@ public class Punir extends Command {
         boolean motivoEncontrado = false;
 
         for (Razoes punicoesList : PUNICOES_POR_PERMISSAO.get(Cargos.getGroup(p))) {
-            if (motivo.equals(punicoesList.name().toLowerCase())) {
-                punirPlayer(args[0], p.getName(), punicoesList);
-                motivoEncontrado = true;
+            if (motivo.equalsIgnoreCase(punicoesList.name().toLowerCase())) {
+                if(args[0].equalsIgnoreCase("defaulti")
+                        || args[0].equalsIgnoreCase("thomaszoord")
+                        || args[0].equalsIgnoreCase("gabrielandrade_")){
+
+                    p.sendMessage(new TextComponent("§cO que você acha que está fazendo?"));
+                    return;
+
+                }
+                if(punicoesList.isNecessitaProvas()){
+                    if(args.length < 3){
+                        p.sendMessage(new TextComponent("§cVocê precisa anexar um link contendo as provas para aplicar a punição!"));
+                        p.sendMessage(new TextComponent("§8Exemplo:  (https://prnt.sc/7xq6_4MS2vvm)"));
+
+                        return;
+                    }
+
+                    if(isURL(args[2])){
+                        punirPlayer(p, args[0], p.getName(), punicoesList, args[2]);
+                        motivoEncontrado = true;
+
+                        break;
+                    } else {
+                        p.sendMessage(new TextComponent("§cVocê precisa anexar um link contendo as provas para aplicar a punição!"));
+                        p.sendMessage(new TextComponent("§8Exemplo:  (https://prnt.sc/7xq6_4MS2vvm)"));
+
+                        return;
+                    }
+                } else {
+                    punirPlayer(p, args[0], p.getName(),punicoesList, null);
+
+                }
 
                 break;
             }
@@ -263,53 +300,9 @@ public class Punir extends Command {
         p.sendMessage(new TextComponent("§ePágina §f" + page + " §ede §f" + totalPages + "§e. Utilize o comando §f/punir <nick> listar [página]§e."));
     }
 
-    private static TextComponent getTextComponent(ProxiedPlayer p, Razoes punicao, String player) {
-        TextComponent serverText = new TextComponent("§8▪ §f" + punicao.getDescricao());
-        serverText.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/punir " + player + " " + punicao.name()));
 
-        ComponentBuilder hoverText = new ComponentBuilder("§e" + punicao.getDescricao() + "\n" +
-                punicao.getDescricaoPunicao() + "\n" +
-                "§e1° §f " + punicao.getPunicao1().getDescricao() + " §7(" + formatDuration(punicao.getDuracao1()) + ")\n");
 
-        if (punicao.getPunicao2() != null) {
-            hoverText.append("§e2° §f " + punicao.getPunicao2().getDescricao() + " §7(" + formatDuration(punicao.getDuracao2()) + ")\n");
-        }
-        if (punicao.getPunicao3() != null) {
-            hoverText.append("§e3° §f " + punicao.getPunicao3().getDescricao() + " §7(" + formatDuration(punicao.getDuracao3()) + ")\n");
-        }
-
-        if (punicao.getPunicao4() != null) {
-            hoverText.append("§e4° §f " + punicao.getPunicao4().getDescricao() + " §7(" + formatDuration(punicao.getDuracao4()) + ")\n");
-        }
-
-        hoverText.append("\n" +
-                "§7Seu grupo: " + Cargos.getGroup(p) + "\n" +
-                "\n" +
-                "§eClique para selecionar!");
-
-        serverText.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText.create()));
-        return serverText;
-    }
-
-    private static String formatDuration(Duration duration) {
-        long days = duration.toDays();
-        long hours = duration.toHours();
-        long minutes = duration.toMinutes();
-
-        if (duration.isZero()) {
-            return "Permanente";
-        }
-
-        if (days > 0) {
-            return days + " dias";
-        } else if (hours > 0) {
-            return hours + " horas";
-        } else {
-            return minutes + " minutos";
-        }
-    }
-
-    private void punirPlayer(String punido, String staffer, Razoes razao) {
+    private void punirPlayer(ProxiedPlayer p, String punido, String staffer, Razoes razao, String prova) {
 
 
         if (ReadPunicoes.getPunicoes(punido) != null) {
@@ -399,24 +392,44 @@ public class Punir extends Command {
                 }
             }
 
+            Punicao punicao = null;
             //CONSTRUTOR DA PUNIÇÃO
-            Punicao punicao = new Punicao(punido, tipoPunicao.name(), 0, staffer, TimeUtils.getRawDate(),
-                    TimeUtils.calcularPunicao(duracao), razao.getDescricaoPunicao(), "ATIVO");
+           if(prova != null){
+               punicao = new Punicao(punido, tipoPunicao.name(), 0, staffer, TimeUtils.getRawDate(),
+                       TimeUtils.calcularPunicao(duracao), razao.getDescricaoPunicao(), prova, "ATIVO");
+               mandarDiscord(punido, razao, prova, duracao, staffer);
+
+           } else {
+               punicao = new Punicao(punido, tipoPunicao.name(), 0, staffer, TimeUtils.getRawDate(),
+                       TimeUtils.calcularPunicao(duracao), razao.getDescricaoPunicao(), "ATIVO");
+
+               mandarDiscord(punido, razao, null, duracao, staffer);
+
+           }
 
             //SALVA PUNIÇÃO NO BANCO DE DADOS
             SavePunicoes.savePunicao(punicao);
-            mandarDiscord(punido, razao, null, duracao, staffer);
+
 
             if(ProxyServer.getInstance().getPlayer(punido) != null){
-                ProxyServer.getInstance().getPlayer(punido).disconnect(kickPlayerBan(punicao, punicao.getDataLiberacao(), punicao.getRazao(), punicao.getId(), punicao.getDataPunicao()));
+                ProxyServer.getInstance().getPlayer(punido).disconnect(kickPlayerBan(punicao));
             }
 
         } else {
             //CONSTRUTOR DA PUNIÇÃO
             TipoPunicao tipoPunicao = razao.getPunicao1();
             Duration duracao = razao.getDuracao1();
-            Punicao punicao = new Punicao(punido, tipoPunicao.name(), 0, staffer, TimeUtils.getRawDate(),
-                    TimeUtils.calcularPunicao(duracao), razao.getDescricaoPunicao(), "ATIVO");
+
+         Punicao punicao = null;
+          if(prova != null){
+              punicao = new Punicao(punido, tipoPunicao.name(), 0, staffer, TimeUtils.getRawDate(),
+                      TimeUtils.calcularPunicao(duracao), razao.getDescricaoPunicao(), prova, "ATIVO");
+
+          } else {
+              punicao = new Punicao(punido, tipoPunicao.name(), 0, staffer, TimeUtils.getRawDate(),
+                      TimeUtils.calcularPunicao(duracao), razao.getDescricaoPunicao(), "ATIVO");
+
+          }
 
             //SALVA PUNIÇÃO NO BANCO DE DADOS
             SavePunicoes.savePunicao(punicao);
@@ -424,38 +437,82 @@ public class Punir extends Command {
             mandarDiscord(punido, razao, null, duracao, staffer);
 
             if(ProxyServer.getInstance().getPlayer(punido) != null){
-                ProxyServer.getInstance().getPlayer(punido).disconnect(kickPlayerBan(punicao, punicao.getDataLiberacao(), punicao.getRazao(), punicao.getId(), punicao.getDataPunicao()));
+                ProxyServer.getInstance().getPlayer(punido).disconnect(kickPlayerBan(punicao));
             }
         }
 
-        //VERIFICA SE PLAYER ESTÁ ONLINE NO SERVIDOR, SE TIVER, DESCONECTA ELE
-
-
+        p.sendMessage(new TextComponent("§aPunição aplicada com sucesso!"));
 
     }
 
-    public TextComponent kickPlayerBan(Punicao p, String duracao, String razao, int id, String data){
+    public void mandarMensagemStaffs(List<ProxiedPlayer> staffs, Punicao punicao){
+        for(ProxiedPlayer s : staffs){
+            s.sendMessage(InformacoesBan(punicao));
+        }
+    }
+
+    public static TextComponent InformacoesBan(Punicao punicao){
+        TextComponent status = new TextComponent();
+
+        TextComponent punicaoStatus = new TextComponent(punicao.getRazao());
+
+        ComponentBuilder hover = new ComponentBuilder("§e "+ punicao.getRazao() + "\n");
+
+        if(punicao.getTipo().equalsIgnoreCase("PERMANENTE")){
+            hover.append(
+                    "§8Informações:" +
+                    "\n" +
+                    "§7ID: §f" + punicao.getId() + "\n" +
+                    "§7Status: " + punicao.getStatus() + "\n" +
+                    "\n" +
+                    "§7Aplicada por: " + punicao.getStaffer() + "\n" +
+                    "§7Expira em: §c(Permanente)" + "\n" +
+                    "\n" +
+                    "§eClique para acessar as provas!");
+        } else {
+            hover.append(
+                    "§8Informações:" +
+                    "\n" +
+                    "§7ID: §f" + punicao.getId() + "\n" +
+                    "§7Status: " + punicao.getStatus() + "\n" +
+                    "\n" +
+                    "§7Aplicada por: " + punicao.getStaffer() + "\n" +
+                    "§7Expira em: " + punicao.getDataLiberacao() + "\n" +
+                    "\n" +
+                    "§eClique para acessar as provas!");
+
+        }
+
+
+        status.setText("§4" + punicao.getNomeUsuario() + " §7foi punido por §4" + punicaoStatus);
+        status.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover.create()));
+
+
+        return status;
+    }
+    public TextComponent kickPlayerBan(Punicao p){
         TextComponent kick = new TextComponent();
         if(p.getTipo().equalsIgnoreCase("PERMANENTE")){
             kick.setText("§6§lSky§3§lCraft\n" +
                     "\n" +
                     "§cVocê está banido permanente!\n" +
                     "\n" +
-                    "§cMotivo: §f" + razao + "\n" +
-                    "§cData: §f" + data + "\n" +
-                    "§cID: §7" + id + "\n" +
+                    "§cMotivo: §f" + p.getRazao() + "\n" +
+                    "§cData: §f" + p.getDataPunicao() + "\n" +
+                    "§cID: §f" + p.getId() + "\n" +
                     "\n" +
                     "§eCaso achar que foi punido injustamente\n" +
                     "§eFaça uma revisao em §fdiscord.gg/skycraft§e.");
         } else {
             kick.setText("§6§lSky§3§lCraft\n" +
                     "\n" +
-                    "§cVocê está banido!\n" +
-                    "§cSua punição expira em " + duracao  +
+                    "§cVocê está banido! \n" +
                     "\n" +
-                    "§cMotivo: §f" + razao + "\n" +
-                    "§cData: §f" + data + "\n" +
-                    "§cID: §7" + id + "\n" +
+                    "§cSua punição expira: §f" + p.getDataLiberacao() + "\n" +
+                    "\n" +
+                    "§cMotivo: §f" + p.getRazao() + "\n" +
+                    "§cData: §f" + p.getDataPunicao() + "\n" +
+                    "§cID: §f" + p.getId() + "\n" +
                     "\n" +
                     "§eCaso achar que foi punido injustamente\n" +
                     "§eFaça uma revisao em §fdiscord.gg/skycraft§e.");
@@ -467,7 +524,6 @@ public class Punir extends Command {
 
         return kick;
     }
-
 
     public void mandarDiscord(String punido, Razoes razao, String prova, Duration duracao, String staffer){
 
@@ -499,4 +555,58 @@ public class Punir extends Command {
 
     }
 
+    public static boolean isURL(String input) {
+        String regex = "^(http|https)://([a-zA-Z0-9.-]+)\\.([a-zA-Z]{2,6})(:[0-9]{1,5})?(/[a-zA-Z0-9]*)*$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(input);
+        return matcher.matches();
+    }
+
+    private static TextComponent getTextComponent(ProxiedPlayer p, Razoes punicao, String player) {
+        TextComponent serverText = new TextComponent("§8▪ §f" + punicao.getDescricao());
+
+        serverText.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/punir " + player + " " + punicao.name() + " <prova>"));
+
+
+        ComponentBuilder hoverText = new ComponentBuilder("§e" + punicao.getDescricao() + "\n" +
+                punicao.getDescricaoPunicao() + "\n" +
+                "§e1° §f " + punicao.getPunicao1().getDescricao() + " §7(" + formatDuration(punicao.getDuracao1()) + ")\n");
+
+        if (punicao.getPunicao2() != null) {
+            hoverText.append("§e2° §f " + punicao.getPunicao2().getDescricao() + " §7(" + formatDuration(punicao.getDuracao2()) + ")\n");
+        }
+        if (punicao.getPunicao3() != null) {
+            hoverText.append("§e3° §f " + punicao.getPunicao3().getDescricao() + " §7(" + formatDuration(punicao.getDuracao3()) + ")\n");
+        }
+
+        if (punicao.getPunicao4() != null) {
+            hoverText.append("§e4° §f " + punicao.getPunicao4().getDescricao() + " §7(" + formatDuration(punicao.getDuracao4()) + ")\n");
+        }
+
+        hoverText.append("\n" +
+                "§7Seu grupo: " + Cargos.getGroup(p) + "\n" +
+                "\n" +
+                "§eClique para selecionar!");
+
+        serverText.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText.create()));
+        return serverText;
+    }
+
+    private static String formatDuration(Duration duration) {
+        long days = duration.toDays();
+        long hours = duration.toHours();
+        long minutes = duration.toMinutes();
+
+        if (duration.isZero()) {
+            return "Permanente";
+        }
+
+        if (days > 0) {
+            return days + " dias";
+        } else if (hours > 0) {
+            return hours + " horas";
+        } else {
+            return minutes + " minutos";
+        }
+    }
 }
