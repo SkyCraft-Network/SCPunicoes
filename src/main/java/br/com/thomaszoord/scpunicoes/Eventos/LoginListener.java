@@ -5,6 +5,7 @@ import com.fire.api.db.punicoes.ReadPunicoes;
 import com.fire.api.db.punicoes.UpdatePunicoes;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -12,10 +13,12 @@ import net.md_5.bungee.event.EventHandler;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LoginListener implements Listener {
 
-
+    public static List<ProxiedPlayer> staffers = new ArrayList<>();
 
 
     @EventHandler
@@ -27,6 +30,9 @@ public class LoginListener implements Listener {
             return;
         }
 
+        if(p.hasPermission("sc.staff")){
+            staffers.add(p);
+        }
 
         Punicao banimento = null;
 
@@ -64,6 +70,12 @@ public class LoginListener implements Listener {
         }
 
 
+    }
+
+
+    @EventHandler
+    public void onPlayerDisconect(PlayerDisconnectEvent e){
+        staffers.remove(e.getPlayer());
     }
 
 

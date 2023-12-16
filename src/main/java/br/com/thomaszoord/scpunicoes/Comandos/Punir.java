@@ -17,10 +17,7 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.PlayerDisconnectEvent;
-import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Command;
-import net.md_5.bungee.event.EventHandler;
 
 import java.awt.*;
 import java.io.IOException;
@@ -222,7 +219,7 @@ public class Punir extends Command {
                     }
 
                     if(isURL(args[2])){
-                        punirPlayer(p, args[0], p.getName(), punicoesList, args[2]);
+                        punirPlayer(p, args[0], Cargos.getTag(p) + " §f" + p.getName(), punicoesList, args[2]);
                         motivoEncontrado = true;
 
                         break;
@@ -233,7 +230,7 @@ public class Punir extends Command {
                         return;
                     }
                 } else {
-                    punirPlayer(p, args[0], p.getName(),punicoesList, null);
+                    punirPlayer(p, args[0], Cargos.getTag(p) + " §f" + p.getName(),punicoesList, null);
 
                 }
 
@@ -396,31 +393,36 @@ public class Punir extends Command {
             //CONSTRUTOR DA PUNIÇÃO
            if(prova != null){
                punicao = new Punicao(punido, tipoPunicao.name(), 0, staffer, TimeUtils.getRawDate(),
-                       TimeUtils.calcularPunicao(duracao), razao.getDescricaoPunicao(), prova, "ATIVO");
-               mandarDiscord(punido, razao, prova, duracao, staffer);
+                       TimeUtils.calcularPunicao(duracao), razao.getDescricao(), prova, "ATIVO");
+               mandarDiscord(punicao, punido, razao, prova, duracao, staffer);
 
            } else {
                punicao = new Punicao(punido, tipoPunicao.name(), 0, staffer, TimeUtils.getRawDate(),
-                       TimeUtils.calcularPunicao(duracao), razao.getDescricaoPunicao(), "ATIVO");
+                       TimeUtils.calcularPunicao(duracao), razao.getDescricao(), "ATIVO");
 
-               mandarDiscord(punido, razao, null, duracao, staffer);
+               mandarDiscord(punicao, punido, razao, null, duracao, staffer);
 
            }
 
             //SALVA PUNIÇÃO NO BANCO DE DADOS
             SavePunicoes.savePunicao(punicao);
+            p.sendMessage(InformacoesBan(punicao));
 
 
-            if(ProxyServer.getInstance().getPlayer(punido) != null){
-                ProxyServer.getInstance().getPlayer(punido).disconnect(kickPlayerBan(punicao));
-            }
+           if(!punicao.getTipo().equalsIgnoreCase("MUTE")){
+               if(ProxyServer.getInstance().getPlayer(punido) != null){
+                   ProxyServer.getInstance().getPlayer(punido).disconnect(kickPlayerBan(punicao));
+               }
+           }
+
 
         } else {
             //CONSTRUTOR DA PUNIÇÃO
             TipoPunicao tipoPunicao = razao.getPunicao1();
             Duration duracao = razao.getDuracao1();
 
-         Punicao punicao = null;
+         Punicao punicao;
+
           if(prova != null){
               punicao = new Punicao(punido, tipoPunicao.name(), 0, staffer, TimeUtils.getRawDate(),
                       TimeUtils.calcularPunicao(duracao), razao.getDescricaoPunicao(), prova, "ATIVO");
@@ -434,14 +436,20 @@ public class Punir extends Command {
             //SALVA PUNIÇÃO NO BANCO DE DADOS
             SavePunicoes.savePunicao(punicao);
 
-            mandarDiscord(punido, razao, null, duracao, staffer);
+            mandarDiscord(punicao, punido, razao, null, duracao, staffer);
 
-            if(ProxyServer.getInstance().getPlayer(punido) != null){
-                ProxyServer.getInstance().getPlayer(punido).disconnect(kickPlayerBan(punicao));
+            p.sendMessage(InformacoesBan(punicao));
+
+
+            if(!punicao.getTipo().equalsIgnoreCase("MUTE")){
+                if(ProxyServer.getInstance().getPlayer(punido) != null){
+                    ProxyServer.getInstance().getPlayer(punido).disconnect(kickPlayerBan(punicao));
+                }
             }
         }
 
         p.sendMessage(new TextComponent("§aPunição aplicada com sucesso!"));
+
 
     }
 
@@ -484,7 +492,7 @@ public class Punir extends Command {
         }
 
 
-        status.setText("§4" + punicao.getNomeUsuario() + " §7foi punido por §4" + punicaoStatus);
+        status.setText("§4" + punicao.getNomeUsuario() + " §7foi punido por §4" + punicaoStatus.getText());
         status.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover.create()));
 
 
@@ -525,26 +533,39 @@ public class Punir extends Command {
         return kick;
     }
 
-    public void mandarDiscord(String punido, Razoes razao, String prova, Duration duracao, String staffer){
+    public void mandarDiscord(Punicao p, String punido, Razoes razao, String prova, Duration duracao, String staffer){
 
         String url = "https://discord.com/api/webhooks/1184975427089997964/Jjrl-H7MyHsGBbvXQPp-LAFotdaHtHGXinv95KdbysDh8Q8AepkO3OuoEpT2ClDqhZBK";
+        String cabeca = "https://cravatar.eu/helmhead/" + punido + "/600.png";
+        String emote = (p.getTipo().equalsIgnoreCase("MUTE") ? "<:DarkBlue:1173740576898813952>" :
+                p.getTipo().equalsIgnoreCase("BAN") ? "<:aprovado:1184978484297211934>" :
+                        "<:redstone:735945517506494544>");
+
+        Color color = (p.getTipo().equalsIgnoreCase("MUTE") ? Color.BLUE :
+                p.getTipo().equalsIgnoreCase("BAN") ? Color.GREEN :
+                Color.RED);
+
         //MANDA MENSAGEM DO DISCORD
+        String banSilence = (p.getTipo().equals("MUTE") ? "Silenciamento" :
+        (p.getTipo().equals("BAN") ? "Banimento" :
+                "Ban Permanente"));
+
         Discord webhook = new Discord(url);
 
-        webhook.addEmbed(new Discord.EmbedObject().setColor(Color.RED)
-                .setTitle("Banimento - " + TimeUtils.getDateDiscord())
-                .setDescription( "<:aprovado:1184978484297211934> Punição aplicada ")
+
+        if(prova != null){
+            webhook.setContent("Prova: " + prova);
+        }
+        webhook.addEmbed(new Discord.EmbedObject().setColor(color)
+                .setThumbnail(cabeca)
+                .setTitle(banSilence + " - " + TimeUtils.getDateDiscord())
+                .setDescription(emote + " Punição aplicada")
                 .addField("Nick", punido, true)
                 .addField("Motivo", razao.getDescricao(), true)
                 .addField("Data de aplicação", TimeUtils.getDateDiscord(), false)
                 .addField("Data de expiração", TimeUtils.getCalculoDiscord(duracao), false)
                 .setFooter("Aplicado por " + staffer, "")
         );
-        webhook.addEmbed(new Discord.EmbedObject().setColor(Color.black)
-                .setDescription("## PROVA ##")
-                .addField("Link",
-                        " ",
-                        false));
 
         try {
             webhook.execute();
@@ -562,6 +583,7 @@ public class Punir extends Command {
         return matcher.matches();
     }
 
+
     private static TextComponent getTextComponent(ProxiedPlayer p, Razoes punicao, String player) {
         TextComponent serverText = new TextComponent("§8▪ §f" + punicao.getDescricao());
 
@@ -570,7 +592,7 @@ public class Punir extends Command {
 
         ComponentBuilder hoverText = new ComponentBuilder("§e" + punicao.getDescricao() + "\n" +
                 punicao.getDescricaoPunicao() + "\n" +
-                "§e1° §f " + punicao.getPunicao1().getDescricao() + " §7(" + formatDuration(punicao.getDuracao1()) + ")\n");
+                "§e1° §7 " + punicao.getPunicao1().getDescricao() + " §7(" + formatDuration(punicao.getDuracao1()) + ")\n");
 
         if (punicao.getPunicao2() != null) {
             hoverText.append("§e2° §f " + punicao.getPunicao2().getDescricao() + " §7(" + formatDuration(punicao.getDuracao2()) + ")\n");

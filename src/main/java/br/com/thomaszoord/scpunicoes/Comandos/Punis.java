@@ -4,6 +4,7 @@ package br.com.thomaszoord.scpunicoes.Comandos;
 import com.fire.api.db.objects.Punicao;
 import com.fire.api.db.punicoes.ReadPunicoes;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -35,14 +36,17 @@ public class Punis extends Command {
 
         List<Punicao> punicoes = ReadPunicoes.getPunicoes(args[0]);
 
-        if(args.length >= 2){
-            handleListarCommand(p, args, punicoes, args[0]);
-        }
-
         if(punicoes == null){
             p.sendMessage(new TextComponent("§cEste jogador nunca foi punido."));
             return;
         }
+
+
+        if(args.length >= 2){
+            handleListarCommand(p, args, punicoes, args[0]);
+            return;
+        }
+
 
 
         sistemaDePagina(p, 1, punicoes, args[0]);
@@ -103,7 +107,7 @@ public class Punis extends Command {
     public static TextComponent InformacoesBan(Punicao punicao){
         TextComponent status = new TextComponent();
 
-        ComponentBuilder hover = new ComponentBuilder("§e "+ punicao.getRazao() + "\n");
+        ComponentBuilder hover = new ComponentBuilder("§e"+ punicao.getRazao() + "\n");
 
         String pStatus =
                 (punicao.getStatus().equalsIgnoreCase("ATIVO") ? "§aAtivo" :
@@ -111,27 +115,35 @@ public class Punis extends Command {
                                 punicao.getStatus().equalsIgnoreCase("EXPIRADO") ? "§cExpirado" : "");
 
 
+        String cor =
+                (punicao.getStatus().equalsIgnoreCase("ATIVO") ? "§a" :
+                        punicao.getStatus().equalsIgnoreCase("REVOGADO") ? "§8" :
+                                punicao.getStatus().equalsIgnoreCase("EXPIRADO") ? "§c" : "");
+
+
 
         if(punicao.getTipo().equalsIgnoreCase("PERMANENTE")){
             hover.append(
                     "§8Informações:" +
                             "\n" +
+                            "\n" +
                             "§8▪ §7ID: §f" + punicao.getId() + "\n" +
-                            "§8▪ §7Status: " + punicao.getStatus() + "\n" +
+                            "§8▪ §7Status: " + pStatus + "\n" +
                             "\n" +
                             "§8▪ §7Autoria: " + punicao.getStaffer() + "\n" +
-                            "§8▪ §7Expira em: §c(Permanente)" + "\n" +
+                            "§8▪ §cPermanente" + "\n" +
                             "\n" +
                             "§eClique para acessar as provas!");
         } else {
             hover.append(
                     "§8Informações:" +
                             "\n" +
-                            "§8▪ §7ID: §f" + punicao.getId() + "\n" +
+                            "\n" +
+                            "§8▪ §7ID: §f#" + punicao.getId() + "\n" +
                             "§8▪ §7Status: " + pStatus + "\n" +
                             "\n" +
-                            "§8▪ §7Aplicada por: " + punicao.getStaffer() + "\n" +
-                            "§8▪ §7Expira em: " + punicao.getDataLiberacao() + "\n" +
+                            "§8▪ §7Autoria: " + punicao.getStaffer() + "\n" +
+                            "§8▪ §7Expira em: §f" + punicao.getDataLiberacao() + "\n" +
                             "\n" +
                             "§eClique para acessar as provas!");
 
@@ -139,8 +151,11 @@ public class Punis extends Command {
 
 
 
-        status.setText("§7▪§f" + punicao.getRazao() + "§7(" + pStatus+ "§7)");
+        status.setText("§8▪ §f" + punicao.getRazao() + cor + " (" + pStatus+ ")");
         status.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover.create()));
+        if(punicao.getProva() != null){
+            status.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, punicao.getProva()));
+        }
 
 
         return status;
