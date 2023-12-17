@@ -31,6 +31,16 @@ public class Kick extends Command {
             return;
         }
 
+        if(args[0].equalsIgnoreCase("defaulti")
+                || args[0].equalsIgnoreCase("thomaszoord")
+                || args[0].equalsIgnoreCase("gabrielandrade_")
+                || args[0].equalsIgnoreCase("jullyaaa")){
+
+            p.sendMessage(new TextComponent("§cO que você acha que está fazendo?"));
+            return;
+
+        }
+
         ProxiedPlayer pKick = ProxyServer.getInstance().getPlayer(args[0]);
         String motivo = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 

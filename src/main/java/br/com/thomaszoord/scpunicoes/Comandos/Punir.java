@@ -205,7 +205,8 @@ public class Punir extends Command {
             if (motivo.equalsIgnoreCase(punicoesList.name().toLowerCase())) {
                 if(args[0].equalsIgnoreCase("defaulti")
                         || args[0].equalsIgnoreCase("thomaszoord")
-                        || args[0].equalsIgnoreCase("gabrielandrade_")){
+                        || args[0].equalsIgnoreCase("gabrielandrade_")
+                        || args[0].equalsIgnoreCase("jullyaaa")){
 
                     p.sendMessage(new TextComponent("§cO que você acha que está fazendo?"));
                     return;
@@ -217,19 +218,12 @@ public class Punir extends Command {
                         p.sendMessage(new TextComponent("§8Exemplo:  (https://prnt.sc/7xq6_4MS2vvm)"));
 
                         return;
-                    }
-
-                    if(isURL(args[2])){
-                        punirPlayer(p, args[0], Cargos.getTag(p) + " §f" + p.getName(), punicoesList, args[2]);
-                        motivoEncontrado = true;
-
-                        break;
                     } else {
-                        p.sendMessage(new TextComponent("§cVocê precisa anexar um link contendo as provas para aplicar a punição!"));
-                        p.sendMessage(new TextComponent("§8Exemplo:  (https://prnt.sc/7xq6_4MS2vvm)"));
+                        motivoEncontrado = true;
+                        punirPlayer(p, args[0], Cargos.getTag(p) + " §f" + p.getName(), punicoesList, args[2]);
 
-                        return;
                     }
+
                 } else {
                     punirPlayer(p, args[0], Cargos.getTag(p) + " §f" + p.getName(),punicoesList, null);
 

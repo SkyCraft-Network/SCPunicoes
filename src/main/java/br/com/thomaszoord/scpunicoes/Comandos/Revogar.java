@@ -66,6 +66,9 @@ public class Revogar extends Command {
                     p.sendMessage(new TextComponent("§aPunição revogada com sucesso."));
                     mandarDiscord(punicao.getNomeUsuario(), motivo, p.getName());
 
+                    for (ProxiedPlayer staff : LoginListener.staffers) {
+                        staff.sendMessage(new TextComponent("§a" + punicao.getNomeUsuario() + " §7teve sua punição revogada por §a" + motivo));
+                    }
 
                 } else if (motivo.equalsIgnoreCase("Erro de aplicação")) {
                     UpdatePunicoes.updateStatus(id, "REVOGADO");
@@ -73,11 +76,18 @@ public class Revogar extends Command {
                     mandarDiscord(punicao.getNomeUsuario(), motivo, p.getName());
 
 
+                    for (ProxiedPlayer staff : LoginListener.staffers) {
+                        staff.sendMessage(new TextComponent("§a" + punicao.getNomeUsuario() + " §7teve sua punição revogada por §a" + motivo));
+                    }
+
                 } else if (motivo.equalsIgnoreCase("Punição aceita")) {
                     UpdatePunicoes.updateStatus(id, "REVOGADO");
                     p.sendMessage(new TextComponent("§aPunição revogada com sucesso."));
                     mandarDiscord(punicao.getNomeUsuario(), motivo, p.getName());
 
+                    for (ProxiedPlayer staff : LoginListener.staffers) {
+                        staff.sendMessage(new TextComponent("§a" + punicao.getNomeUsuario() + " §7teve sua punição revogada por §a" + motivo));
+                    }
 
                 } else {
                     if (p.hasPermission("sc.coord")
@@ -132,7 +142,7 @@ public class Revogar extends Command {
 
 
     public boolean contemApenasNumeros(String s) {
-        return s.matches("\\d+");
+        return s.matches("[0-9]+"); // Ou use "\\d+" como você fez originalmente
     }
     public void textoRevogar(ProxiedPlayer p, String pessoa){
 
