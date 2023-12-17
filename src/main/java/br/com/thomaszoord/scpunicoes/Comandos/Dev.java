@@ -38,7 +38,7 @@ public class Dev extends Command {
             return;
         }
 
-        String motivo = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+        String motivo = String.join(" ", Arrays.copyOfRange(args, 0, args.length));
 
         if(dev.contains(p.getName())){
             for (String devs : dev){

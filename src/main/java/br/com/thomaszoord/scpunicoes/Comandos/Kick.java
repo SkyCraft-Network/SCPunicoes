@@ -1,9 +1,7 @@
 package br.com.thomaszoord.scpunicoes.Comandos;
 
-import br.com.thomaszoord.scpunicoes.Enum.Razoes;
 import br.com.thomaszoord.scpunicoes.Utils.Discord;
 import br.com.thomaszoord.scpunicoes.Utils.TimeUtils;
-import com.fire.api.db.objects.Punicao;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -12,7 +10,7 @@ import net.md_5.bungee.api.plugin.Command;
 
 import java.awt.*;
 import java.io.IOException;
-import java.time.Duration;
+
 import java.util.Arrays;
 
 public class Kick extends Command {

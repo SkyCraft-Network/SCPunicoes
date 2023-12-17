@@ -4,10 +4,11 @@ import br.com.thomaszoord.scpunicoes.Enum.Razoes;
 import br.com.thomaszoord.scpunicoes.Enum.TipoPunicao;
 import br.com.thomaszoord.scpunicoes.Utils.Discord;
 import br.com.thomaszoord.scpunicoes.Utils.TimeUtils;
-import com.fire.api.Cargos;
 import com.fire.api.db.objects.Punicao;
 import com.fire.api.db.punicoes.ReadPunicoes;
 import com.fire.api.db.punicoes.SavePunicoes;
+import com.fire.api.Cargos;
+
 import com.fire.api.db.user.VerifyUser;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
