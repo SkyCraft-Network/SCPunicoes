@@ -549,8 +549,11 @@ public class Punir extends Command {
 
 
         if(prova != null){
-            webhook.setContent("Prova: " + prova);
+            webhook.setContent("Prova: " + prova + "| ID **#" + p.getId() + "**");
         }
+
+        webhook.setContent("ID **#" + p.getId() + "**");
+
         webhook.addEmbed(new Discord.EmbedObject().setColor(color)
                 .setThumbnail(cabeca)
                 .setTitle(banSilence + " - " + TimeUtils.getDateDiscord())
